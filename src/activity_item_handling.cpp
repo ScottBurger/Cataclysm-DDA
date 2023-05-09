@@ -205,7 +205,8 @@ static void put_into_vehicle( Character &c, item_drop_reason reason, const std::
         return;
     }
 
-    const tripoint where = veh.global_part_pos3( part );
+    vehicle_part &vp = veh.part( part );
+    const tripoint where = veh.global_part_pos3( vp );
     map &here = get_map();
     const std::string ter_name = here.name( where );
     int fallen_count = 0;
@@ -222,12 +223,12 @@ static void put_into_vehicle( Character &c, item_drop_reason reason, const std::
             it.charges = 0;
         }
 
-        if( veh.add_item( part, it ) ) {
+        if( veh.add_item( vp, it ) ) {
             into_vehicle_count += it.count();
         } else {
             if( it.count_by_charges() ) {
                 // Maybe we can add a few charges in the trunk and the rest on the ground.
-                int charges_added = veh.add_charges( part, it );
+                const int charges_added = veh.add_charges( vp, it );
                 it.mod_charges( -charges_added );
                 into_vehicle_count += charges_added;
             }
