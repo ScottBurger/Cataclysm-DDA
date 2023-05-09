@@ -1031,7 +1031,7 @@ void vehicle::operate_reaper()
         if( vp.has_feature( "CARGO" ) ) {
             for( map_stack::iterator iter = items.begin(); iter != items.end(); ) {
                 if( ( iter->volume() <= max_pickup_volume ) &&
-                    add_item( reaper_id, *iter ) ) {
+                    add_item( vp.part(), *iter ) ) {
                     iter = items.erase( iter );
                 } else {
                     ++iter;
@@ -1127,7 +1127,7 @@ void vehicle::operate_scoop()
                                sounds::sound_t::combat, _( "BEEEThump" ), false, "vehicle", "scoop_thump" );
             }
             //This attempts to add the item to the scoop inventory and if successful, removes it from the map.
-            if( add_item( scoop, *that_item_there ) ) {
+            if( add_item( vp.part(), *that_item_there ) ) {
                 here.i_rem( position, that_item_there );
             } else {
                 break;
