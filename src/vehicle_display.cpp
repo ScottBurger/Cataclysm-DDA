@@ -149,7 +149,8 @@ int vehicle::print_part_list( const catacurses::window &win, int y1, const int m
     std::vector<int> pl = this->parts_at_relative( parts[p].mount, true, include_fakes );
     int y = y1;
     for( size_t i = 0; i < pl.size(); i++ ) {
-        const vehicle_part &vp = parts[ pl [ i ] ];
+        const vehicle_part &vp = parts[pl[i]];
+        const vpart_info &vpi = vp.info();
         if( !vp.is_real_or_active_fake() ) {
             continue;
         }
@@ -178,11 +179,12 @@ int vehicle::print_part_list( const catacurses::window &win, int y1, const int m
             }
         }
 
-        if( part_flag( pl[i], "CARGO" ) ) {
+        if( vpi.has_flag( VPFLAG_CARGO ) ) {
+            const vehicle_stack vs = get_items( vp );
             //~ used/total volume of a cargo vehicle part
             partname += string_format( _( " (vol: %s/%s %s)" ),
-                                       format_volume( stored_volume( pl[i] ) ),
-                                       format_volume( max_volume( pl[i] ) ),
+                                       format_volume( vs.stored_volume() ),
+                                       format_volume( vs.max_volume() ),
                                        volume_units_abbr() );
         }
 
