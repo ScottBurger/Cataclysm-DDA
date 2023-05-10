@@ -3299,7 +3299,7 @@ void veh_interact::complete_vehicle( Character &you )
             std::list<item> resulting_items;
 
             // First we get all the contents of the part
-            vehicle_stack contents = veh->get_items( vehicle_part );
+            vehicle_stack contents = veh->get_items( veh->part( vehicle_part ) );
             resulting_items.insert( resulting_items.end(), contents.begin(), contents.end() );
             contents.clear();
 
