@@ -875,14 +875,14 @@ void vpart_info::check()
             if( part.size < 0_ml ) {
                 debugmsg( "vehicle part %s has negative size", part.id.c_str() );
             }
-            if( !part.has_flag( "CARGO" ) ) {
+            if( !part.has_flag( VPFLAG_CARGO ) ) {
                 debugmsg( "vehicle part %s is not CARGO and cannot define size", part.id.c_str() );
             } else if( part.has_flag( "FLUIDTANK" ) ) {
                 debugmsg( "vehicle part %s is FLUIDTANK and cannot define size; it's defined on part's base item",
                           part.id.c_str() );
             }
         }
-        if( part.has_flag( "CARGO" ) && part.has_flag( "FLUIDTANK" ) ) {
+        if( part.has_flag( VPFLAG_CARGO ) && part.has_flag( VPFLAG_FLUIDTANK ) ) {
             debugmsg( "vehicle part %s can't have both CARGO and FLUIDTANK flags at the same time",
                       part.id.c_str() );
         }
@@ -1592,7 +1592,7 @@ void vehicles::finalize_prototypes()
                 }
             }
 
-            if( pt.part.obj().has_flag( "CARGO" ) ) {
+            if( pt.part.obj().has_flag( VPFLAG_CARGO ) ) {
                 cargo_spots.insert( pt.pos );
             }
         }
