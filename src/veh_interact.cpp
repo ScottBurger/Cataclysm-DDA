@@ -3361,7 +3361,7 @@ void veh_interact::complete_vehicle( Character &you )
                 here.destroy_vehicle( veh );
             } else {
                 const tripoint part_pos = veh->global_part_pos3( vp );
-                veh->remove_part( vehicle_part );
+                veh->remove_part( vp );
                 // part_removal_cleanup calls refresh, so parts_at_relative is valid
                 veh->part_removal_cleanup();
                 if( veh->parts_at_relative( vp.mount, true ).empty() ) {
