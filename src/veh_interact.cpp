@@ -844,10 +844,11 @@ bool veh_interact::update_part_requirements()
     int dif_steering = 0;
     if( sel_vpart_info->has_flag( "STEERABLE" ) ) {
         std::set<int> axles;
-        for( int &p : veh->steering ) {
-            if( !veh->part_flag( p, "TRACKED" ) ) {
+        for( const int p : veh->steering ) {
+            const vehicle_part &vp = veh->part( p );
+            if( !vp.info().has_flag( "TRACKED" ) ) {
                 // tracked parts don't contribute to axle complexity
-                axles.insert( veh->part( p ).mount.x );
+                axles.insert( vp.mount.x );
             }
         }
 
@@ -3267,10 +3268,6 @@ void veh_interact::complete_vehicle( Character &you )
 
         case 'O': // 'O' = remove appliance
         case 'o': {
-            const bool appliance_removal = static_cast<char>( you.activity.index ) == 'O';
-            const bool wall_wire_removal = appliance_removal &&
-                                           veh->part( vehicle_part ).info().id == vpart_ap_wall_wiring;
-            const inventory &inv = you.crafting_inventory();
             if( vehicle_part >= veh->part_count() ) {
                 vehicle_part = veh->get_next_shifted_index( vehicle_part, you );
                 if( vehicle_part == -1 ) {
@@ -3281,11 +3278,15 @@ void veh_interact::complete_vehicle( Character &you )
                     return;
                 }
             }
+            ::vehicle_part &vp = veh->part( vehicle_part );
+            const vpart_info &vpi = vp.info();
+            const bool appliance_removal = static_cast<char>( you.activity.index ) == 'O';
+            const bool wall_wire_removal = appliance_removal && vpi.id == vpart_ap_wall_wiring;
+            const inventory &inv = you.crafting_inventory();
             const requirement_data reqs = vpinfo.removal_requirements();
             if( !reqs.can_make_with_inventory( inv, is_crafting_component ) ) {
                 //~  1$s is the vehicle part name
-                add_msg( m_info, _( "You don't meet the requirements to remove the %1$s." ),
-                         vpinfo.name() );
+                add_msg( m_info, _( "You don't meet the requirements to remove the %1$s." ), vpinfo.name() );
                 break;
             }
             for( const auto &e : reqs.get_components() ) {
@@ -3306,37 +3307,37 @@ void veh_interact::complete_vehicle( Character &you )
             contents.clear();
 
             // Power cables must remove parts from the target vehicle, too.
-            if( veh->part_flag( vehicle_part, "POWER_TRANSFER" ) ) {
+            if( vp.info().has_flag( "POWER_TRANSFER" ) ) {
                 veh->remove_remote_part( vehicle_part );
             }
 
-            bool broken = veh->part( vehicle_part ).is_broken();
-            bool smash_remove = veh->part( vehicle_part ).info().has_flag( "SMASH_REMOVE" );
+            bool broken = vp.is_broken();
+            bool smash_remove = vp.info().has_flag( "SMASH_REMOVE" );
 
             if( broken ) {
                 you.add_msg_if_player( _( "You remove the broken %1$s from the %2$s." ),
-                                       veh->part( vehicle_part ).name(), veh->name );
+                                       vp.name(), veh->name );
             } else if( smash_remove ) {
                 you.add_msg_if_player( _( "You smash the %1$s to bits, removing it from the %2$s." ),
-                                       veh->part( vehicle_part ).name(), veh->name );
+                                       vp.name(), veh->name );
             } else {
                 you.add_msg_if_player( _( "You remove the %1$s from the %2$s." ),
-                                       veh->part( vehicle_part ).name(), veh->name );
+                                       vp.name(), veh->name );
             }
 
             if( wall_wire_removal ) {
-                veh->part( vehicle_part ).properties_to_item();
-            } else if( veh->part_flag( vehicle_part, "TOW_CABLE" ) ) {
+                vp.properties_to_item();
+            } else if( vp.info().has_flag( "TOW_CABLE" ) ) {
                 veh->invalidate_towing( true, &you );
             } else if( broken ) {
-                item_group::ItemList pieces = veh->part( vehicle_part ).pieces_for_broken_part();
+                item_group::ItemList pieces = vp.pieces_for_broken_part();
                 resulting_items.insert( resulting_items.end(), pieces.begin(), pieces.end() );
             } else {
                 if( smash_remove ) {
-                    item_group::ItemList pieces = veh->part( vehicle_part ).pieces_for_broken_part();
+                    item_group::ItemList pieces = vp.pieces_for_broken_part();
                     resulting_items.insert( resulting_items.end(), pieces.begin(), pieces.end() );
                 } else {
-                    resulting_items.push_back( veh->part( vehicle_part ).properties_to_item() );
+                    resulting_items.push_back( vp.properties_to_item() );
                 }
                 for( const std::pair<const skill_id, int> &sk : vpinfo.install_skills ) {
                     // removal is half as educational as installation
@@ -3358,12 +3359,11 @@ void veh_interact::complete_vehicle( Character &you )
                 // destroy vehicle clears the cache
                 here.destroy_vehicle( veh );
             } else {
-                point mount = veh->part( vehicle_part ).mount;
-                const tripoint part_pos = veh->global_part_pos3( vehicle_part );
+                const tripoint part_pos = veh->global_part_pos3( vp );
                 veh->remove_part( vehicle_part );
                 // part_removal_cleanup calls refresh, so parts_at_relative is valid
                 veh->part_removal_cleanup();
-                if( veh->parts_at_relative( mount, true ).empty() ) {
+                if( veh->parts_at_relative( vp.mount, true ).empty() ) {
                     get_map().clear_vehicle_point_from_cache( veh, part_pos );
                 }
             }
