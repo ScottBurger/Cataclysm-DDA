@@ -93,7 +93,6 @@ vehicle_part *most_repairable_part( vehicle &veh, Character &who )
 bool repair_part( vehicle &veh, vehicle_part &pt, Character &who )
 {
     const vpart_info &vp = pt.info();
-
     const requirement_data reqs = pt.is_broken()
                                   ? vp.install_requirements()
                                   : vp.repair_requirements() * pt.get_base().repairable_levels();
